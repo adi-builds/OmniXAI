@@ -1,8 +1,8 @@
 import React from 'react'
 
-const Logo = ({ className = 'w-32 sm:w-44' }) => {
+const Logo = ({ className = 'w-32 sm:w-44', onClick }) => {
   return (
-    <svg className={className} viewBox="0 0 220 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg className={className} onClick={onClick} style={{cursor:'pointer'}} viewBox="0 0 220 50" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="iconGrad" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="#7C3AED" />
