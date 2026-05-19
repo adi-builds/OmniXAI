@@ -1,4 +1,5 @@
 import logo from "./logo.svg";
+import omnix from "./ominx_ai_logo.svg";
 import gradientBackground from "./gradientBackground.png";
 import user_group from "./user_group.png";
 import star_icon from "./star_icon.svg";
@@ -18,6 +19,7 @@ export const assets = {
     star_dull_icon,
     profile_img_1,
     arrow_icon,
+    omnix_ai_logo
 };
 
 export const AiToolsData = [
