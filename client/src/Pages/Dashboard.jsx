@@ -1,19 +1,10 @@
 import { Show } from '@clerk/react'
 import { Gem, Sparkles } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
 import CreationItem from '../Components/CreationItem'
 import { dummyCreationData } from '../assets/assets'
 
 const Dashboard = () => {
-
-  const [creations,setCreations] = useState([])
-
-  const getDashboardData = async()=>{
-    setCreations(dummyCreationData)
-  }
-  useEffect(()=>{
-    getDashboardData()
-  },[])
+  const creations = dummyCreationData
 
   return (
     <div className='h-full overflow-y-scroll p-6'>

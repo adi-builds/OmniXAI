@@ -1,4 +1,3 @@
-import React from 'react'
 import { AiToolsData } from '../assets/assets'
 import { useNavigate } from 'react-router-dom'
 import { useUser, useClerk } from '@clerk/react'  // ✅ add useClerk
