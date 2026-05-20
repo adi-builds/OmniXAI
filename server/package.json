@@ -12,6 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@clerk/express": "^2.1.19",
+    "@neondatabase/serverless": "^1.1.0",
     "axios": "^1.16.1",
     "cloudinary": "^2.10.0",
     "cors": "^2.8.6",
