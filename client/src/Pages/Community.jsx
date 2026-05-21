@@ -1,19 +1,11 @@
 import { useUser } from "@clerk/react"
-import { useEffect, useState } from "react"
 import { dummyPublishedCreationData } from "../assets/assets"
 import { Heart } from "lucide-react"
 
 const Community = () => {
-  const [creations, setCreations] = useState([])
   const {user} = useUser()
-  const fetchCreations = async()=>{
-    setCreations(dummyPublishedCreationData)
-  }
-  useEffect(()=>{
-    if(user) {
-      fetchCreations()
-    }
-  },[user])
+  const creations = user ? dummyPublishedCreationData : []
+
   return (
     <div className="flex-1 h-full flex flex-col gap-4 p-6">
       Creations

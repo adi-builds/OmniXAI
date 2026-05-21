@@ -1,5 +1,5 @@
 import { Scissors, Sparkles } from 'lucide-react'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 const RemoveObject = () => {
   const [input,setInput] = useState('')
@@ -17,6 +17,7 @@ const RemoveObject = () => {
         </div>
         <p className='mt-6 text-sm font-medium'>Upload Image</p>
         <input onChange={(e)=>setInput(e.target.files[0])}  type="file" accept="image/*" className='w-full p-2 px-3 mt-2 outline-none text-sm rounded-md border border-gray-300 text-gray-600'  required />
+        {input && <p className="text-xs text-gray-500 mt-1">Selected: {input.name}</p>}
         <p className='mt-6 text-sm font-medium'>Describe object name to remove</p>
         <textarea onChange={(e)=>setObject(e.target.value)} value={object} rows={4}  className='w-full p-2 px-3 mt-2 outline-none text-sm rounded-md border border-gray-300' placeholder='e.g., watch or spoon, only single object name' required />
         

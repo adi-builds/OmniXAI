@@ -5,7 +5,7 @@ import axios from "axios";
 import { v2 as cloudinary } from "cloudinary";
 import FormData from "form-data";
 import fs from "fs";
-import pdf from "pdf-parse/lib/pdf-parse.js";
+import { PDFParse } from "pdf-parse";
 
 const AI = new OpenAI({
     apiKey: process.env.GEMINI_API_KEY,
@@ -18,14 +18,15 @@ export const generatArticle = async (req, res) => {
         const { prompt, length } = req.body;
         const plan = req.plan;
         const free_usage = req.free_usage;
+        const maxTokens = Math.min(Math.max(Number(length) || 1200, 800), 4000);
         if (plan !== "premium" && free_usage >= 10) {
             return res.json({ success: false, message: "You have reached your free usage limit." });
         }
         const response = await AI.chat.completions.create({
-            model: "gemini-2.0-flash",
+            model: "gemini-3.5-flash",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
-            max_tokens: length,
+            max_tokens: maxTokens,
         });
 
         const content = response.choices[0].message.content;
@@ -55,7 +56,7 @@ export const generateBlogTitle = async (req, res) => {
             return res.json({ success: false, message: "You have reached your free usage limit." });
         }
         const response = await AI.chat.completions.create({
-            model: "gemini-2.0-flash",
+            model: "gemini-3.5-flash",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             max_tokens: 100,
@@ -228,25 +229,30 @@ export const removeImageObject = async (req, res) => {
 export const resumeReview = async (req, res) => {
     try {
         const { userId } = req.auth();
-        const { object } = req.file;
-        const image = req.file;
+        const resume = req.file;
         const plan = req.plan;
 
         if (plan !== "premium") {
             return res.json({ success: false, message: "This feature is only available to premium users." });
         }
 
+        if (!resume) {
+            return res.status(400).json({ success: false, message: "Resume file is required." });
+        }
+
         if(resume.size > 5 * 1024 * 1024){
-            return res.json({ success: false, message: "Image size should be less than 5MB." });
+            return res.json({ success: false, message: "Resume size should be less than 5MB." });
         }
 
         const dataBuffer = fs.readFileSync(resume.path)
-        const pdfData = await pdf(dataBuffer)
+        const parser = new PDFParse({ data: dataBuffer })
+        const pdfData = await parser.getText()
+        await parser.destroy()
 
         const prompt = `Review the resume and provide constructive feedback on its strengths,weakness,and areas for imporovement. Resume Content:\n\n${pdfData.text}`
 
         const response = await AI.chat.completions.create({
-            model: "gemini-2.0-flash",
+            model: "gemini-3.5-flash",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.7,
             max_tokens: 1000,
