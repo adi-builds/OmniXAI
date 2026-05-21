@@ -9,8 +9,16 @@ import RemoveBackground from './Pages/RemoveBackground'
 import RemoveObject from './Pages/RemoveObject'
 import ReviewResume from './Pages/ReviewResume'
 import Community from './Pages/Community'
+import { useAuth } from '@clerk/react'
+import { useEffect } from 'react'
 
 const App = () => {
+
+  const { getToken } = useAuth()  
+
+  useEffect(() => {
+    getToken().then((token) => console.log(token))  // check token in console
+  }, [])
   return (
     <div>
       <Routes>
