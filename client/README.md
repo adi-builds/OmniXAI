@@ -1,16 +1,119 @@
-# React + Vite
+# Omnix AI - Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend of Omnix AI built using modern React technologies and a clean scalable architecture.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+# 🚀 Tech Stack
 
-## React Compiler
+- React.js
+- React Router DOM
+- Tailwind CSS
+- Axios
+- Clerk Authentication
+- Lucide React
+- Prebuilt UI Components
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+# ✨ Features
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- Modern responsive UI
+- Authentication system with Clerk
+- Client-side routing
+- API integration using Axios
+- Reusable UI components
+- Clean folder structure
+
+---
+
+# 📂 Project Status
+
+⚠️ Frontend setup completed.  
+Development is currently in progress.
+
+More features and pages will be added soon.
+
+---
+
+# 🛠️ Installation
+
+Clone the repository:
+
+```bash
+git clone <>
+```
+
+Go to client folder:
+
+```bash
+cd client
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+---
+
+# ▶️ Run the Project
+
+```bash
+npm run dev
+```
+
+---
+
+# 📦 Main Dependencies
+
+```json
+{
+  "react": "",
+  "react-router-dom": "",
+  "axios": "",
+  "tailwindcss": "",
+  "@clerk/clerk-react": "",
+  "lucide-react": ""
+}
+```
+
+---
+
+# 📁 Folder Structure
+
+```bash
+src/
+ ├── assets/
+ ├── components/
+ ├── pages/
+```
+
+---
+
+# 🔐 Environment Variables
+
+Create a `.env` file in client folder:
+
+```env
+VITE_CLERK_PUBLISHABLE_KEY=your_key
+VITE_API_URL=your_backend_url
+```
+
+---
+
+# 🧠 Future Plans
+
+- AI integrations
+- Dashboard system
+- User profiles
+- File uploads
+- Chat functionality
+- Real-time features
+
+---
+
+# 👨‍💻 Author
+
+Aditya Paul
