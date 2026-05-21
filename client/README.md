@@ -41,7 +41,7 @@ More features and pages will be added soon.
 Clone the repository:
 
 ```bash
-git clone <>
+git clone <https://github.com/adi-builds/OmniXAI>
 ```
 
 Go to client folder:
@@ -70,12 +70,14 @@ npm run dev
 
 ```json
 {
-  "react": "",
-  "react-router-dom": "",
-  "axios": "",
-  "tailwindcss": "",
-  "@clerk/clerk-react": "",
-  "lucide-react": ""
+  "@clerk/react": "^6.6.6",
+    "@tailwindcss/vite": "^4.3.0",
+    "lucide-react": "^1.16.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "react-markdown": "^10.1.0",
+    "react-router-dom": "^7.15.1",
+    "tailwindcss": "^4.3.0"
 }
 ```
 
