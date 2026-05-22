@@ -1,12 +1,109 @@
 import { Hash, Sparkles } from 'lucide-react'
 import  { useState } from 'react'
+import axios from 'axios'
+import toast from 'react-hot-toast'
+import { useAuth } from '@clerk/react'
+
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+
+const cleanTitleOption = (title) => String(title)
+  .replace(/^[-*\d.)\s]+/, '')
+  .replace(/^["']|["'],?$/g, '')
+  .trim()
+
+const isTitleOption = (title) => {
+  if (!title) return false
+  if (/^[{\[\]},]+$/.test(title)) return false
+  if (/^"?titles"?\s*:?\s*\[?$/i.test(title)) return false
+  return /[a-zA-Z]/.test(title)
+}
+
+const parseTitleOptions = (content = '') => {
+  const cleanedContent = content
+    .replace(/```json|```/g, '')
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .trim()
+
+  const toTitles = (titles) => titles
+    .map(cleanTitleOption)
+    .filter(isTitleOption)
+    .slice(0, 8)
+
+  try {
+    const parsed = JSON.parse(cleanedContent)
+    const titles = Array.isArray(parsed) ? parsed : parsed.titles
+    if (Array.isArray(titles)) {
+      return toTitles(titles)
+    }
+  } catch {
+    // Fall back to parsing plain text below.
+  }
+
+  const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/)
+  if (jsonMatch) {
+    try {
+      const parsed = JSON.parse(jsonMatch[0])
+      const titles = Array.isArray(parsed) ? parsed : parsed.titles
+      if (Array.isArray(titles)) {
+        return toTitles(titles)
+      }
+    } catch {
+      // Continue to looser parsing.
+    }
+  }
+
+  const quotedTitles = [...cleanedContent.matchAll(/"([^"]+)"/g)]
+    .map((match) => match[1])
+    .filter((title) => title.toLowerCase() !== 'titles')
+
+  if (quotedTitles.length > 1) {
+    return toTitles(quotedTitles)
+  }
+
+  const numberedTitles = [...cleanedContent.matchAll(/(?:^|\s)(?:\d{1,2}[.)]\s+)(.*?)(?=(?:\s\d{1,2}[.)]\s+)|$)/gs)]
+    .map((match) => match[1].trim())
+    .filter(Boolean)
+
+  if (numberedTitles.length > 1) {
+    return numberedTitles.slice(0, 8)
+  }
+
+  return cleanedContent
+    .split(/\r?\n/)
+    .map(cleanTitleOption)
+    .filter(isTitleOption)
+    .slice(0, 8)
+}
 
 const BlogTitles = () => {
   const blogCategories =['General','Technology','Business','Health','Lifestyle','Education','Travel','Food']
     const [selectedCategory,setSelectedCategory]=useState('General')
     const [input,setInput] = useState('')
+    const [loading,setLoading] = useState(false)
+    const [titles,setTitles] = useState([])
+
+    const { getToken } = useAuth()
     const onSubmitHandler = async(e)=>{
       e.preventDefault()
+      try{
+        setLoading(true)
+        const {data}= await axios.post('/api/ai/generate-blog-title',{keyword: input, category: selectedCategory},{headers:{Authorization:`Bearer ${await getToken()}`}})
+
+        if (data.success){
+          const serverTitles = Array.isArray(data.titles)
+            ? data.titles.map(cleanTitleOption).filter(isTitleOption).slice(0, 8)
+            : []
+          const titleOptions = serverTitles.length > 1 ? serverTitles : parseTitleOptions(data.content)
+          setTitles(titleOptions)
+        }
+        else{
+          toast.error(data.message)
+        }
+      }catch(error){
+        toast.error(error.message)
+      }
+      setLoading(false)
     }
   return (
     <div className='h-full overflow-y-scroll p-6 flex items-start flex-wrap gap-4 text-slate-700'>
@@ -25,8 +122,9 @@ const BlogTitles = () => {
           ))}
         </div>
         <br />
-        <button className='w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#C341F6] to-[#8E37EB] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer'>
-          <Hash className='w-5'/>
+        <button disabled={loading} className='w-full flex justify-center items-center gap-2 bg-gradient-to-r from-[#C341F6] to-[#8E37EB] text-white px-4 py-2 mt-6 text-sm rounded-lg cursor-pointer'>
+          {loading ? <span className='w-4 h-4 my-1 rounded-full border-2 border-t-transparent animate-spin'></span>:<Hash className='w-5'/>}
+          
           Generate Title
         </button>
       </form>
@@ -36,12 +134,26 @@ const BlogTitles = () => {
           <Hash className='w-5 h-5 text-[#8E37EB]'/>
           <h1 className='text-xl font-semibold'>Generated Titles</h1>
         </div>
-        <div className='flex-1 flex justify-center items-center'>
+        {
+          !titles.length ? (
+            <div className='flex-1 flex justify-center items-center'>
           <div className='text-sm flex flex-col items-center gap-5 text-gray-400 text-center'>
             <Hash className='w-9 h-9'/>
             <p>Enter a topic and click "Generate Title" to get started</p>
           </div>
         </div>
+          ):(
+            <div className='mt-4 space-y-3 overflow-y-auto pr-2'>
+              {titles.map((title, index) => (
+                <div key={title} className='rounded-lg border border-purple-100 bg-purple-50/40 px-4 py-3 text-sm text-slate-700'>
+                  <span className='mr-2 font-semibold text-purple-700'>{index + 1}.</span>
+                  {title}
+                </div>
+              ))}
+            </div>
+          )
+        }
+        
       </div>
     </div>
   )

@@ -12,6 +12,76 @@ const AI = new OpenAI({
     baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
 });
 
+const cleanTitleOption = (title) => String(title)
+    .replace(/^[-*\d.)\s]+/, "")
+    .replace(/^["']|["'],?$/g, "")
+    .trim();
+
+const isTitleOption = (title) => {
+    if (!title) return false;
+    if (/^[{\[\]},]+$/.test(title)) return false;
+    if (/^"?titles"?\s*:?\s*\[?$/i.test(title)) return false;
+    return /[a-zA-Z]/.test(title);
+};
+
+const parseTitleOptions = (content = "") => {
+    const cleanedContent = content
+        .replace(/```json|```/g, "")
+        .replace(/[“”]/g, "\"")
+        .replace(/[‘’]/g, "'")
+        .trim();
+
+    const toTitles = (titles) => titles
+        .map(cleanTitleOption)
+        .filter(isTitleOption)
+        .slice(0, 8);
+
+    try {
+        const parsed = JSON.parse(cleanedContent);
+        const titles = Array.isArray(parsed) ? parsed : parsed.titles;
+        if (Array.isArray(titles)) {
+            return toTitles(titles);
+        }
+    } catch {
+        // Fall back to parsing plain text below.
+    }
+
+    const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+        try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            const titles = Array.isArray(parsed) ? parsed : parsed.titles;
+            if (Array.isArray(titles)) {
+                return toTitles(titles);
+            }
+        } catch {
+            // Continue to looser parsing.
+        }
+    }
+
+    const quotedTitles = [...cleanedContent.matchAll(/"([^"]+)"/g)]
+        .map((match) => match[1])
+        .filter((title) => title.toLowerCase() !== "titles");
+
+    if (quotedTitles.length > 1) {
+        return toTitles(quotedTitles);
+    }
+
+    const numberedTitles = [...cleanedContent.matchAll(/(?:^|\s)(?:\d{1,2}[.)]\s+)(.*?)(?=(?:\s\d{1,2}[.)]\s+)|$)/gs)]
+        .map((match) => match[1].trim())
+        .filter(Boolean);
+
+    if (numberedTitles.length > 1) {
+        return numberedTitles.slice(0, 8);
+    }
+
+    return cleanedContent
+        .split(/\r?\n/)
+        .map(cleanTitleOption)
+        .filter(isTitleOption)
+        .slice(0, 8);
+};
+
 export const generatArticle = async (req, res) => {
     try {
         const { userId } = req.auth();
@@ -49,20 +119,28 @@ export const generatArticle = async (req, res) => {
 export const generateBlogTitle = async (req, res) => {
     try {
         const { userId } = req.auth();
-        const { prompt } = req.body;
+        const { keyword, category } = req.body;
         const plan = req.plan;
         const free_usage = req.free_usage;
         if (plan !== "premium" && free_usage >= 10) {
             return res.json({ success: false, message: "You have reached your free usage limit." });
         }
+        const prompt = `Generate exactly 8 distinct, catchy blog title options for the keyword "${keyword}" in the ${category} category. Return valid JSON only in this format: {"titles":["title 1","title 2","title 3","title 4","title 5","title 6","title 7","title 8"]}`;
         const response = await AI.chat.completions.create({
             model: "gemini-3.5-flash",
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.7,
-            max_tokens: 100,
+            messages: [
+                {
+                    role: "system",
+                    content: "You generate blog title options. Always return valid JSON only with a titles array containing exactly 8 complete title strings.",
+                },
+                { role: "user", content: prompt }
+            ],
+            temperature: 0.8,
+            max_tokens: 500,
         });
 
-        const content = response.choices[0].message.content;
+        const content = response.choices[0].message.content || "";
+        const titles = parseTitleOptions(content);
 
         await sql`INSERT INTO creations (user_id,prompt,content,type) VALUES (${userId},${prompt},${content}, 'blog-title')`;
 
@@ -72,7 +150,7 @@ export const generateBlogTitle = async (req, res) => {
             });
         }
 
-        res.json({ success: true, content });
+        res.json({ success: true, content, titles });
     } catch (error) {
         console.log(error.message);
         res.json({ success: false, message: error.message });
